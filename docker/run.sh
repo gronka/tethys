@@ -52,6 +52,19 @@ echo "postgres.user: '${TETHYS_DB_USERNAME}'" >> /etc/salt/minion
 echo "postgres.pass: '${TETHYS_DB_PASSWORD}'" >> /etc/salt/minion
 echo "postgres.bins_dir: '${CONDA_HOME}/envs/${CONDA_ENV_NAME}/bin'" >> /etc/salt/minion
 
+echo "1111111111111111"
+echo "1111111111111111"
+echo "1111111111111111"
+echo "1111111111111111"
+echo "1111111111111111"
+
+echo ${TETHYS_LB_SERVICE_HOST}
+echo ${ALLOWED_HOSTS}
+if [[ -z ${TETHYS_LB_SERVICE_HOST} ]]; then
+	export ALLOWED_HOSTS=$(echo ${ALLOWED_HOSTS} | sed "s/\]/, ${TETHYS_LB_SERVICE_HOST}\]/g")
+fi
+
+
 if [[ $test = false ]]; then
   # Set extra ENVs
   export NGINX_USER=$(grep 'user .*;' /etc/nginx/nginx.conf | awk '{print $2}' | awk -F';' '{print $1}')
