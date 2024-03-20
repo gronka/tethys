@@ -52,16 +52,11 @@ echo "postgres.user: '${TETHYS_DB_USERNAME}'" >> /etc/salt/minion
 echo "postgres.pass: '${TETHYS_DB_PASSWORD}'" >> /etc/salt/minion
 echo "postgres.bins_dir: '${CONDA_HOME}/envs/${CONDA_ENV_NAME}/bin'" >> /etc/salt/minion
 
-echo "1111111111111111"
-echo "1111111111111111"
-echo "1111111111111111"
-echo "1111111111111111"
-echo "1111111111111111"
-
-echo ${TETHYS_LB_SERVICE_HOST}
-echo ${ALLOWED_HOSTS}
-if [[ -z ${TETHYS_LB_SERVICE_HOST} ]]; then
+echo "TETHYS_LB_SERVICE_HOST: ${TETHYS_LB_SERVICE_HOST}"
+if [[ -n ${TETHYS_LB_SERVICE_HOST} ]]; then
+	echo "adding TETHYS_LB_SERVICE_HOST to ALLOWED_HOSTS"
 	export ALLOWED_HOSTS=$(echo ${ALLOWED_HOSTS} | sed "s/\]/, ${TETHYS_LB_SERVICE_HOST}\]/g")
+	echo "updated ALLOWED_HOSTS${ALLOWED_HOSTS}"
 fi
 
 
