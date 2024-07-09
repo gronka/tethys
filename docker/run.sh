@@ -1,5 +1,16 @@
 #!/bin/bash
 
+tail_file() {
+	echo "tailing file $1"
+	ALIGN=27
+	LENGTH=`echo $1 | wc -c`
+	PADDING=`expr ${ALIGN} - ${LENGTH}`
+	PAD=`perl -e "print ' ' x $PADDING;"`
+	file="/var/log/$1"
+	# each tail runs in the background but prints to stdout
+	tail -qF -n +3 $file | sed "s|^|${log_file}${PAD}:|g" &
+}
+
 echo_status() {
   local args="${@}"
   tput setaf 4
@@ -101,12 +112,34 @@ if [[ $test = false ]]; then
   echo_status "Starting supervisor"
 
   # Start Supervisor
-  /usr/bin/supervisord $([[ $no_daemon = true ]] && printf %s "-n")
+  /usr/bin/supervisord
 
   echo_status "Done!"
 
   # Watch Logs
   echo_status "Watching logs"
-  tail -qF /var/log/supervisor/* /var/log/nginx/* /var/log/tethys/*
-fi
 
+	log_files=("httpd/access_log" 
+		"httpd/error_log" 
+		"httpd/forensic_log" 
+		"httpd/modsec_audit.log" 
+		"httpd/modsec_debug.log" 
+		"nginx/access.log" 
+		"nginx/error.log" 
+		"supervisor/supervisord.log" 
+		"tethys/tethys.log")
+
+	# When this exits, exit all background tail processes
+	trap 'kill $(jobs -p)' EXIT
+	for log_file in "${log_files[@]}"; do
+		tail_file "${log_file}"
+	done
+
+	# Tail multiple daphne tethys processes writing to tethys01.log, tethys02.log...
+	for i in $(seq -f "%02g" 0 $NUM_PROCESSES); do
+		tail_file "tethys/tethys${i}.log"
+	done
+
+	# Wait for kill or stop command (docker waits here)
+	wait
+fi
